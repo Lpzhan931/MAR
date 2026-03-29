@@ -1,0 +1,11 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Output directory
+output/
+evaluation/
+
+# Optional
+*.log
+.env
