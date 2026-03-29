@@ -11,7 +11,7 @@ import transformers
 from transformers import Trainer, TrainerCallback
 from transformers.trainer_pt_utils import LabelSmoother
 
-from mar_model import MARModel, MARConfig
+from attn_mar_model import MARModel, MARConfig
 from train_settings import Config
 
 
@@ -156,15 +156,6 @@ class TrainingArguments(transformers.TrainingArguments):
         default=1,
         metadata={"help": "Number of layers for each Medusa head in MAR."},
     )
-    conv_kernel_size: int = field(
-        default=1,
-        metadata={"help": "Size of conv kernel while token mixing."}
-    )
-    extract_layers: str = field(
-        default="-1",
-        metadata={"help": "Comma separeted layer indices, e.g., '-1, -8, -16'"}
-    )
-
 
 local_rank = None
 
@@ -395,9 +386,6 @@ def train():
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
     local_rank = training_args.local_rank
 
-    if isinstance(training_args.extract_layers, str):
-        training_args.extract_layers = [int(x.strip()) for x in training_args.extract_layers.split(",")]
-
     # Set RoPE scaling factor
     config = transformers.AutoConfig.from_pretrained(
         model_args.model_name_or_path,
@@ -454,8 +442,6 @@ def train():
         model,
         medusa_num_heads=training_args.medusa_num_heads,
         medusa_num_layers=training_args.medusa_num_layers,
-        conv_kernel_size=training_args.conv_kernel_size,
-        extract_layers=training_args.extract_layers,
         base_model_name_or_path=model_args.model_name_or_path,
         small_model_name_or_path=model_args.small_model_name_or_path,
         freeze_small_model=model_args.freeze_small_model,
@@ -465,8 +451,6 @@ def train():
     mar_config = MARConfig(
         medusa_num_heads=training_args.medusa_num_heads,
         medusa_num_layers=training_args.medusa_num_layers,
-        conv_kernel_size=training_args.conv_kernel_size,
-        extract_layers=training_args.extract_layers,
         base_model_name_or_path=model_args.model_name_or_path,
         small_model_name_or_path=model_args.small_model_name_or_path
     )
@@ -504,7 +488,6 @@ def train():
         tokenizer.save_pretrained(training_args.output_dir)
         
         # 提取所有 requires_grad=True 的自定义参数
-        # 这里包含了 token_mixer, layer_fusion, medusa_head, fc_layer, mar_lm_head, (small_model)
         trainable_state_dict = {
             k: v.cpu() for k, v in actual_model.named_parameters() if v.requires_grad
         }
