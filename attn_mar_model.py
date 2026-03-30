@@ -334,8 +334,9 @@ class MARModel(nn.Module):
             # [B, T, D_LM + D_SM]
             concat_hidden = torch.cat([m_hidden, s_hidden], dim=-1)
             
-            # FC 采用残差连接的方式
-            fc_out = m_hidden + self.fc_layer(concat_hidden)
+            # # FC 残差连接
+            # fc_out = m_hidden + self.fc_layer(concat_hidden)
+            fc_out = self.fc_layer(concat_hidden)
 
             mlogits = self.mar_lm_head(fc_out)
             mar_logits.append(mlogits)

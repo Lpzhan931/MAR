@@ -7,14 +7,14 @@
 BASE_MODEL="/home/share/models/Qwen3-8B/"
 SMALL_MODEL="/home/pzli/Project/Spec/SpS/models/qwen3-tiny-ep3/"
 DATASET="/home/pzli/Project/Spec/medusa/dataset/perfectblend_qwen3-8b_regen_20k.json"
-LR=1e-3
+LR=5e-4
 FREEZE_SMALL_MODEL=False    # 小模型参与训练
 
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 OUTPUT_DIR="output/output_qwen3_${TIMESTAMP}"
 
 
-torchrun --master_port=29507 \
+torchrun --master_port=29501 \
     --nproc_per_node=1 attn_mar_train.py \
     --model_name_or_path "$BASE_MODEL" \
     --small_model_name_or_path "$SMALL_MODEL" \
@@ -40,4 +40,5 @@ torchrun --master_port=29507 \
     --medusa_num_heads 4 \
     --medusa_num_layers 1 \
     --freeze_small_model "$FREEZE_SMALL_MODEL" \
+    --max_grad_norm 1.0 \
 

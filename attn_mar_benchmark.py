@@ -1,15 +1,15 @@
 """
 python attn_mar_benchmark.py \
-    --mar-model-path /home/pzli/Project/Spec/SpS/260319_mar_cat/commit_mar/output/output_qwen3_20260329_204429/checkpoint-8 \
+    --mar-model-path /home/pzli/Project/Spec/SpS/260319_mar_cat/commit_mar/output/output_qwen3_20260329_210611/checkpoint-480 \
     --base-model-path /home/share/models/Qwen3-8B/ \
     --bench-name gsm8k --num-samples 1 \
     --show-first-sample
 
 python attn_mar_benchmark.py \
-    --mar-model-path /home/pzli/Project/Spec/SpS/260319_mar_cat/commit_mar/output/output_qwen3_20260329_204429/checkpoint-8 \
+    --mar-model-path /home/pzli/Project/Spec/SpS/260319_mar_cat/commit_mar/output/output_qwen3_20260329_231718 \
     --base-model-path /home/share/models/Qwen3-8B/ \
-    --bench-name gsm8k \
-    --num-samples 10 
+    --bench-name gsm8k --num-samples 1 \
+    --show-first-sample
     
 """
 import torch
@@ -22,7 +22,7 @@ from transformers.cache_utils import DynamicCache
 
 from attn_mar_model import MARModel
 
-DATA_DIR = "/home/pzli/Project/Spec/SpS/data/jsonl_file"    # 替换为 jsonl 测试数据路径
+DATA_DIR = "/home/pzli/Project/Spec/SpS/260327_attn_medusa/commit/data"
 LOG_DIR = "./evaluation/logs"
 
 def trim_kv_cache(past_key_values, keep_len):
@@ -156,7 +156,8 @@ def benchmark_mar_generate(model, input_ids, max_new_tokens=256, debug_log_file=
             
             # 融合预测
             concat_hidden = torch.cat([m_hidden, s_hidden], dim=-1)
-            fc_out = m_hidden + model.fc_layer(concat_hidden)
+            # fc_out = m_hidden + model.fc_layer(concat_hidden)
+            fc_out = model.fc_layer(concat_hidden)
             mlogits = model.mar_lm_head(fc_out)
             
             next_tok = torch.argmax(mlogits, dim=-1).item()

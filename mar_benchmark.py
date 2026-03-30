@@ -1,16 +1,9 @@
 """
-python benchmark_mar_qwen3.py \
-    --mar-model-path /home/pzli/Project/Spec/SpS/260319_mar_cat/commit_mar/output/output_qwen3_20260329_155954/checkpoint-2 \
-    --base-model-path /home/share/models/Qwen3-8B/ \
-    --bench-name gsm8k --num-samples 1 \
-    --show-first-sample
-
-python benchmark_mar_qwen3.py \
-    --mar-model-path /home/pzli/Project/Spec/SpS/260319_mar_cat/output/output_qwen3_20260321_002948/ \
+python mar_benchmark.py \
+    --mar-model-path /home/pzli/Project/Spec/model/mar_model/mar_full_data/checkpoint-4928 \
     --base-model-path /home/share/models/Qwen3-8B/ \
     --bench-name gsm8k \
-    --num-samples 10 
-    
+    --num-samples 80 
 """
 import torch
 import time
@@ -21,7 +14,7 @@ from datetime import datetime
 
 from mar_model import MARModel
 
-DATA_DIR = "/home/pzli/Project/Spec/SpS/data/jsonl_file"    # 替换为 jsonl 测试数据路径
+DATA_DIR = "/home/pzli/Project/Spec/SpS/260327_attn_medusa/commit/data"
 LOG_DIR = "./evaluation/logs"
 
 def trim_kv_cache(past_key_values, keep_len):
@@ -151,7 +144,8 @@ def benchmark_mar_generate(model, input_ids, max_new_tokens=256, debug_log_file=
             
             # 融合预测
             concat_hidden = torch.cat([m_hidden, s_hidden], dim=-1)
-            fc_out = m_hidden + model.fc_layer(concat_hidden)
+            # fc_out = m_hidden + model.fc_layer(concat_hidden)
+            fc_out = model.fc_layer(concat_hidden)
             mlogits = model.mar_lm_head(fc_out)
             
             next_tok = torch.argmax(mlogits, dim=-1).item()
